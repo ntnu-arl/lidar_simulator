@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>lidar_simulator</name>
+  <version>1.0.0</version>
+  <description>
+    LiDAR simulation.
+  </description>
+
+  <license>BSD</license>
+  <author>Kevin Hallenbeck</author>
+  <maintainer email="khallenbeck@dataspeedinc.com">Kevin Hallenbeck</maintainer>
+  
+  <author>Tung Dang</author>
+  <maintainer email="tung.dang@nevada.unr.edu">Tung Dang</maintainer>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <exec_depend>lidar_description</exec_depend>
+  <exec_depend>lidar_gazebo_plugins</exec_depend>
+
+  <export>
+    <metapackage/>
+  </export>
+
+</package>

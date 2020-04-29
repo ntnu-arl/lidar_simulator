@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>lidar_gazebo_plugins</name>
+  <version>1.0.8</version>
+  <description>
+    Gazebo plugin to provide simulated data from LiDAR scanners.
+  </description>
+
+  <license>BSD</license>
+  <author>Kevin Hallenbeck</author>
+  <maintainer email="khallenbeck@dataspeedinc.com">Kevin Hallenbeck</maintainer>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>roscpp</depend>
+  <depend>sensor_msgs</depend>
+  <depend>tf</depend>
+  <depend>gazebo_ros</depend>
+
+  <export>
+  </export>
+
+</package>
