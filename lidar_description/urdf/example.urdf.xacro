@@ -32,8 +32,8 @@
     </inertial>
   </link>
 
-  <xacro:include filename="$(find lidar_description)/urdf/VLP-16.urdf.xacro"/>
-  <VLP-16 parent="base_link" name="velodyne" topic="/velodyne_points" hz="10" samples="440" gpu="${gpu}">
+  <xacro:include filename="$(find lidar_description)/urdf/VLP-16.urdf.xacro"/> -->
+ <VLP-16 parent="base_link" name="velodyne" topic="/velodyne_points" hz="10" samples="440" gpu="${gpu}">
     <origin xyz="0 0 0.4" rpy="0 0 0" />
   </VLP-16>
 
@@ -41,5 +41,10 @@
   <HDL-32E parent="base_link" name="velodyne2" topic="/velodyne_points2" hz="10" samples="220" gpu="${gpu}">
     <origin xyz="0 0 0.6" rpy="0 0 0" />
   </HDL-32E>
+
+  <xacro:include filename="$(find lidar_description)/urdf/OS1-64.urdf.xacro"/>
+  <OS1-64 parent="base_link" hz="10" samples="220">
+    <origin xyz="0 0 1.0" rpy="0 0 0" />
+  </OS1-64> -->
 
 </robot>

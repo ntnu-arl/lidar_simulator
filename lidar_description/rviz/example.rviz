@@ -26,7 +26,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: VLP-16
+    SyncSource: OS1-64
 Visualization Manager:
   Class: ""
   Displays:
@@ -57,6 +57,12 @@ Visualization Manager:
           Value: true
         base_link:
           Value: true
+        os1_imu:
+          Value: true
+        os1_lidar:
+          Value: true
+        os1_sensor:
+          Value: true
         velodyne:
           Value: true
         velodyne2:
@@ -73,6 +79,11 @@ Visualization Manager:
       Tree:
         base_footprint:
           base_link:
+            os1_sensor:
+              os1_imu:
+                {}
+              os1_lidar:
+                {}
             velodyne2_base_link:
               velodyne2:
                 {}
@@ -96,6 +107,19 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
         base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        os1_imu:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        os1_lidar:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        os1_sensor:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -186,6 +210,36 @@ Visualization Manager:
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
+    - Alpha: 1
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 1.00037146
+        Min Value: -0.00719559193
+        Value: true
+      Axis: Z
+      Channel Name: intensity
+      Class: rviz/PointCloud2
+      Color: 255; 255; 255
+      Color Transformer: AxisColor
+      Decay Time: 0
+      Enabled: true
+      Invert Rainbow: false
+      Max Color: 255; 255; 255
+      Max Intensity: 999999
+      Min Color: 0; 0; 0
+      Min Intensity: 0
+      Name: OS1-64
+      Position Transformer: XYZ
+      Queue Size: 10
+      Selectable: true
+      Size (Pixels): 3
+      Size (m): 0.00999999978
+      Style: Points
+      Topic: /os1_cloud_node/points
+      Unreliable: false
+      Use Fixed Frame: true
+      Use rainbow: true
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -211,25 +265,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/XYOrbit
-      Distance: 7.40222931
+      Distance: 8.76245499
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0
-        Y: 0
-        Z: 0
+        X: 0.431712508
+        Y: 1.65161335
+        Z: -1.84774399e-06
       Focal Shape Fixed Size: false
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.18539916
+      Pitch: 0.815398693
       Target Frame: <Fixed Frame>
       Value: XYOrbit (rviz)
-      Yaw: 4.95861292
+      Yaw: 6.01363707
     Saved: ~
 Window Geometry:
   Displays:
