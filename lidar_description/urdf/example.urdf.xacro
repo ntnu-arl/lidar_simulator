@@ -37,9 +37,9 @@
     <origin xyz="0 0 0.4" rpy="0 0 0" />
   </VLP-16>
 
-  <!-- <xacro:include filename="$(find lidar_description)/urdf/HDL-32E.urdf.xacro"/>
+  <xacro:include filename="$(find lidar_description)/urdf/HDL-32E.urdf.xacro"/>
   <HDL-32E parent="base_link" name="velodyne2" topic="/velodyne_points2" hz="10" samples="220" gpu="${gpu}">
     <origin xyz="0 0 0.6" rpy="0 0 0" />
-  </HDL-32E> -->
+  </HDL-32E>
 
 </robot>

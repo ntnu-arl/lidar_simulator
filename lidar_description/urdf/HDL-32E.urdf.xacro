@@ -19,7 +19,7 @@
       </inertial>
       <visual>
         <geometry>
-          <mesh filename="package://velodyne_description/meshes/${name}/${name}_base.dae" />
+          <mesh filename="package://lidar_description/meshes/HDL-32E/HDL-32E_base.dae" />
         </geometry>
       </visual>
       <collision>
@@ -45,7 +45,7 @@
       <visual>
         <origin xyz="0 0 -0.09081" rpy="0 0 0" />
         <geometry>
-          <mesh filename="package://velodyne_description/meshes/${name}/${name}_scan.dae" />
+          <mesh filename="package://lidar_description/meshes/HDL-32E/HDL-32E_scan.dae" />
         </geometry>
       </visual>
     </link>
@@ -83,7 +83,7 @@
               <stddev>0.0</stddev>
             </noise>
           </ray>
-          <plugin name="gazebo_ros_laser_controller" filename="libgazebo_ros_velodyne_gpu_laser.so">
+          <plugin name="gazebo_ros_laser_controller" filename="libgazebo_ros_lidar_gpu.so">
             <topicName>${topic}</topicName>
             <frameName>${name}</frameName>
             <min_range>${min_range}</min_range>
@@ -123,7 +123,7 @@
               <stddev>0.0</stddev>
             </noise>
           </ray>
-          <plugin name="gazebo_ros_laser_controller" filename="libgazebo_ros_velodyne_laser.so">
+          <plugin name="gazebo_ros_laser_controller" filename="libgazebo_ros_lidar.so">
             <topicName>${topic}</topicName>
             <frameName>${name}</frameName>
             <min_range>${min_range}</min_range>

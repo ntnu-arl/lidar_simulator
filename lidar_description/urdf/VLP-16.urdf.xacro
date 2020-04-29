@@ -19,12 +19,12 @@
       </inertial>
       <visual>
         <geometry>
-          <mesh filename="package://lidar_description/meshes/${name}/${name}_base_1.dae" />
+          <mesh filename="package://lidar_description/meshes/VLP-16/VLP-16_base_1.dae" />
         </geometry>
       </visual>
       <visual>
         <geometry>
-          <mesh filename="package://lidar_description/meshes/${name}/${name}_base_2.dae" />
+          <mesh filename="package://lidar_description/meshes/VLP-16/VLP-16_base_2.dae" />
         </geometry>
       </visual>
       <collision>
@@ -50,7 +50,7 @@
       <visual>
         <origin xyz="0 0 -0.0377" />
         <geometry>
-          <mesh filename="package://lidar_description/${name}/${name}_scan.dae" />
+          <mesh filename="package://lidar_description/meshes/VLP-16/VLP-16_scan.dae" />
         </geometry>
       </visual>
     </link>
