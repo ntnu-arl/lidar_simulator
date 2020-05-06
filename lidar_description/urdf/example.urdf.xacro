@@ -45,6 +45,6 @@
   <xacro:include filename="$(find lidar_description)/urdf/OS1-64.urdf.xacro"/>
   <OS1-64 parent="base_link" hz="10" samples="220">
     <origin xyz="0 0 1.0" rpy="0 0 0" />
-  </OS1-64> -->
+  </OS1-64>
 
 </robot>
