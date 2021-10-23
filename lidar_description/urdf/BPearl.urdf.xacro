@@ -58,7 +58,7 @@
     <!-- Gazebo requires the velodyne_gazebo_plugins package -->
     <gazebo reference="${name}">
       <xacro:if value="${gpu}">
-        <sensor type="gpu_ray" name="${name}-VLP16">
+        <sensor type="gpu_ray" name="${name}-BPearl">
           <pose>0 0 0 0 0 0</pose>
           <visualize>false</visualize>
           <update_rate>${hz}</update_rate>
@@ -73,8 +73,8 @@
               <vertical>
                 <samples>${lasers}</samples>
                 <resolution>1</resolution>
-                <min_angle>-${15.0*M_PI/180.0}</min_angle>
-                <max_angle> ${15.0*M_PI/180.0}</max_angle>
+                <min_angle>${10.0*M_PI/180.0}</min_angle>
+                <max_angle> ${80.0*M_PI/180.0}</max_angle>
               </vertical>
             </scan>
             <range>
@@ -98,7 +98,7 @@
         </sensor>
       </xacro:if>
       <xacro:unless value="${gpu}">
-        <sensor type="ray" name="${name}-VLP16">
+        <sensor type="ray" name="${name}-BPearl">
           <pose>0 0 0 0 0 0</pose>
           <visualize>false</visualize>
           <update_rate>${hz}</update_rate>

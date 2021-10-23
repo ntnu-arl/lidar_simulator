@@ -39,7 +39,7 @@ target_link_libraries(gazebo_ros_lidar_gpu
   ${GAZEBO_LIBRARIES}
   GpuRayPlugin
 )
-target_compile_definitions(gazebo_ros_lidar_gpu PRIVATE GAZEBO_GPU_RAY=0)
+target_compile_definitions(gazebo_ros_lidar_gpu PRIVATE GAZEBO_GPU_RAY=1)
 
 install(TARGETS gazebo_ros_lidar gazebo_ros_lidar_gpu
         LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
