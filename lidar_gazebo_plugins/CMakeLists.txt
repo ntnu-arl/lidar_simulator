@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.0.2)
 project(lidar_gazebo_plugins)
 
 find_package(catkin REQUIRED COMPONENTS
@@ -39,7 +39,7 @@ target_link_libraries(gazebo_ros_lidar_gpu
   ${GAZEBO_LIBRARIES}
   GpuRayPlugin
 )
-target_compile_definitions(gazebo_ros_lidar_gpu PRIVATE GAZEBO_GPU_RAY=0)
+target_compile_definitions(gazebo_ros_lidar_gpu PRIVATE GAZEBO_GPU_RAY=1)
 
 install(TARGETS gazebo_ros_lidar gazebo_ros_lidar_gpu
         LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}

@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2015-2018, Dataspeed Inc.
+ *  Copyright (c) 2015-2021, Dataspeed Inc.
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -32,8 +32,8 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#ifndef GAZEBO_ROS_LIDAR_H_
-#define GAZEBO_ROS_LIDAR_H_
+#ifndef GAZEBO_ROS_LIDAR_
+#define GAZEBO_ROS_LIDAR_
 
 // Use the same source code for CPU and GPU plugins
 #ifndef GAZEBO_GPU_RAY
@@ -105,6 +105,12 @@ namespace gazebo
     /// \brief frame transform name, should match link name
     private: std::string frame_name_;
 
+    /// \brief organize cloud
+    private: bool organize_cloud_;
+
+    /// \brief the intensity beneath which points will be filtered
+    private: double min_intensity_;
+
     /// \brief Minimum range to publish
     private: double min_range_;
 
@@ -144,5 +150,5 @@ namespace gazebo
 
 } // namespace gazebo
 
-#endif /* GAZEBO_ROS_LIDAR_H_ */
+#endif /* GAZEBO_ROS_VELODYNE_LASER_H_ */
 

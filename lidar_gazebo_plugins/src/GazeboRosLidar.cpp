@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2015-2018, Dataspeed Inc.
+ *  Copyright (c) 2015-2021, Dataspeed Inc.
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -53,6 +53,8 @@
 #include <sensor_msgs/PointCloud2.h>
 
 #include <tf/tf.h>
+
+static_assert(GAZEBO_MAJOR_VERSION > 2, "Gazebo version is too old");
 
 #if GAZEBO_GPU_RAY
 #define RaySensor GpuRaySensor
@@ -117,35 +119,49 @@ void GazeboRosLidar::Load(sensors::SensorPtr _parent, sdf::ElementPtr _sdf)
   }
 
   if (!_sdf->HasElement("frameName")) {
-    ROS_INFO("Lidar plugin missing <frameName>, defaults to /world");
+    ROS_INFO("Lidar laser plugin missing <frameName>, defaults to /world");
     frame_name_ = "/world";
   } else {
     frame_name_ = _sdf->GetElement("frameName")->Get<std::string>();
   }
 
+  if (!_sdf->HasElement("organize_cloud")) {
+    ROS_INFO("Lidar laser plugin missing <organize_cloud>, defaults to false");
+    organize_cloud_ = false;
+  } else {
+    organize_cloud_ = _sdf->GetElement("organize_cloud")->Get<bool>();
+  }
+
   if (!_sdf->HasElement("min_range")) {
-    ROS_INFO("Lidar plugin missing <min_range>, defaults to 0");
+    ROS_INFO("Lidar laser plugin missing <min_range>, defaults to 0");
     min_range_ = 0;
   } else {
     min_range_ = _sdf->GetElement("min_range")->Get<double>();
   }
 
   if (!_sdf->HasElement("max_range")) {
-    ROS_INFO("Lidar plugin missing <max_range>, defaults to infinity");
+    ROS_INFO("Lidar laser plugin missing <max_range>, defaults to infinity");
     max_range_ = INFINITY;
   } else {
     max_range_ = _sdf->GetElement("max_range")->Get<double>();
   }
 
+  min_intensity_ = std::numeric_limits<double>::lowest();
+  if (!_sdf->HasElement("min_intensity")) {
+    ROS_INFO("Lidar laser plugin missing <min_intensity>, defaults to no clipping");
+  } else {
+    min_intensity_ = _sdf->GetElement("min_intensity")->Get<double>();
+  }
+
   if (!_sdf->HasElement("topicName")) {
-    ROS_INFO("Lidar plugin missing <topicName>, defaults to /points");
+    ROS_INFO("Lidar laser plugin missing <topicName>, defaults to /points");
     topic_name_ = "/points";
   } else {
     topic_name_ = _sdf->GetElement("topicName")->Get<std::string>();
   }
 
   if (!_sdf->HasElement("gaussianNoise")) {
-    ROS_INFO("Lidar plugin missing <gaussianNoise>, defaults to 0.0");
+    ROS_INFO("Lidar laser plugin missing <gaussianNoise>, defaults to 0.0");
     gaussian_noise_ = 0;
   } else {
     gaussian_noise_ = _sdf->GetElement("gaussianNoise")->Get<double>();
@@ -257,13 +273,14 @@ void GazeboRosLidar::OnScan(ConstLaserScanStampedPtr& _msg)
 
   const double MIN_RANGE = std::max(min_range_, minRange);
   const double MAX_RANGE = std::min(max_range_, maxRange);
+  const double MIN_INTENSITY = min_intensity_;
 
   // Populate message fields
-  const uint32_t POINT_STEP = 32;
+  const uint32_t POINT_STEP = 22;
   sensor_msgs::PointCloud2 msg;
   msg.header.frame_id = frame_name_;
   msg.header.stamp = ros::Time(_msg->time().sec(), _msg->time().nsec());
-  msg.fields.resize(5);
+  msg.fields.resize(6);
   msg.fields[0].name = "x";
   msg.fields[0].offset = 0;
   msg.fields[0].datatype = sensor_msgs::PointField::FLOAT32;
@@ -277,13 +294,17 @@ void GazeboRosLidar::OnScan(ConstLaserScanStampedPtr& _msg)
   msg.fields[2].datatype = sensor_msgs::PointField::FLOAT32;
   msg.fields[2].count = 1;
   msg.fields[3].name = "intensity";
-  msg.fields[3].offset = 16;
+  msg.fields[3].offset = 12;
   msg.fields[3].datatype = sensor_msgs::PointField::FLOAT32;
   msg.fields[3].count = 1;
   msg.fields[4].name = "ring";
-  msg.fields[4].offset = 20;
+  msg.fields[4].offset = 16;
   msg.fields[4].datatype = sensor_msgs::PointField::UINT16;
   msg.fields[4].count = 1;
+  msg.fields[5].name = "time";
+  msg.fields[5].offset = 18;
+  msg.fields[5].datatype = sensor_msgs::PointField::FLOAT32;
+  msg.fields[5].count = 1;
   msg.data.resize(verticalRangeCount * rangeCount * POINT_STEP);
 
   int i, j;
@@ -293,17 +314,20 @@ void GazeboRosLidar::OnScan(ConstLaserScanStampedPtr& _msg)
 
       // Range
       double r = _msg->scan().ranges(i + j * rangeCount);
-      if ((MIN_RANGE >= r) || (r >= MAX_RANGE)) {
-        continue;
+      // Intensity
+      double intensity = _msg->scan().intensities(i + j * rangeCount);
+      // Ignore points that lay outside range bands or optionally, beneath a
+      // minimum intensity level.
+      if ((MIN_RANGE >= r) || (r >= MAX_RANGE) || (intensity < MIN_INTENSITY) ) {
+        if (!organize_cloud_) {
+          continue;
+        }
       }
 
       // Noise
       if (gaussian_noise_ != 0.0) {
         r += gaussianKernel(0,gaussian_noise_);
       }
-
-      // Intensity
-      double intensity = _msg->scan().intensities(i + j * rangeCount);
 
       // Get angles of ray to get xyz for point
       double yAngle;
@@ -323,32 +347,40 @@ void GazeboRosLidar::OnScan(ConstLaserScanStampedPtr& _msg)
 
       // pAngle is rotated by yAngle:
       if ((MIN_RANGE < r) && (r < MAX_RANGE)) {
-        *((float*)(ptr + 0)) = r * cos(pAngle) * cos(yAngle);
-        *((float*)(ptr + 4)) = r * cos(pAngle) * sin(yAngle);
-#if GAZEBO_MAJOR_VERSION > 2
-        *((float*)(ptr + 8)) = r * sin(pAngle);
-#else
-        *((float*)(ptr + 8)) = -r * sin(pAngle);
-#endif
-        *((float*)(ptr + 16)) = intensity;
-#if GAZEBO_MAJOR_VERSION > 2
-        *((uint16_t*)(ptr + 20)) = j; // ring
-#else
-        *((uint16_t*)(ptr + 20)) = verticalRangeCount - 1 - j; // ring
-#endif
+        *((float*)(ptr + 0)) = r * cos(pAngle) * cos(yAngle); // x
+        *((float*)(ptr + 4)) = r * cos(pAngle) * sin(yAngle); // y
+        *((float*)(ptr + 8)) = r * sin(pAngle); // z
+        *((float*)(ptr + 12)) = intensity; // intensity
+        *((uint16_t*)(ptr + 16)) = j; // ring
+        *((float*)(ptr + 18)) = 0.0; // time
+        ptr += POINT_STEP;
+      } else if (organize_cloud_) {
+        *((float*)(ptr + 0)) = nanf(""); // x
+        *((float*)(ptr + 4)) = nanf(""); // y
+        *((float*)(ptr + 8)) = nanf(""); // x
+        *((float*)(ptr + 12)) = nanf(""); // intensity
+        *((uint16_t*)(ptr + 16)) = j; // ring
+        *((float*)(ptr + 18)) = 0.0; // time
         ptr += POINT_STEP;
       }
     }
   }
 
   // Populate message with number of valid points
+  msg.data.resize(ptr - msg.data.data()); // Shrink to actual size
   msg.point_step = POINT_STEP;
-  msg.row_step = ptr - msg.data.data();
-  msg.height = 1;
-  msg.width = msg.row_step / POINT_STEP;
   msg.is_bigendian = false;
-  msg.is_dense = true;
-  msg.data.resize(msg.row_step); // Shrink to actual size
+  if (organize_cloud_) {
+    msg.width = verticalRangeCount;
+    msg.height = msg.data.size() / POINT_STEP / msg.width;
+    msg.row_step = POINT_STEP * msg.width;
+    msg.is_dense = false;
+  } else {
+    msg.width = msg.data.size() / POINT_STEP;
+    msg.height = 1;
+    msg.row_step = msg.data.size();
+    msg.is_dense = true;
+  }
 
   // Publish output
   pub_.publish(msg);
