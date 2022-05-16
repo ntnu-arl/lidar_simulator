@@ -25,7 +25,6 @@
         <origin xyz="0 0 0.0" rpy="0 0 1.5707" />
         <geometry>
           <mesh filename="package://lidar_description/meshes/Ouster/ouster.dae" />
-          <!-- <cylinder length="0.073" radius="0.04" /> -->
         </geometry>
       </visual>
     </link>
@@ -51,11 +50,6 @@
 
     <!-- Gazebo requires the ouster_gazebo_plugins package -->
     <gazebo reference="${name}">
-
-
-
-
-
       <xacro:if value="${gpu}">
         <sensor type="gpu_ray" name="${name}-OS1-64">
           <pose>0 0 0 0 0 0</pose>
