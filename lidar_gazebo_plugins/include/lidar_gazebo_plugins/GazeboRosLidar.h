@@ -114,6 +114,9 @@ namespace gazebo
     /// \brief Gaussian noise
     private: double gaussian_noise_;
 
+    /// \brief Organized cloud
+    private: bool organize_cloud_;
+
     /// \brief Gaussian noise generator
     private: static double gaussianKernel(double mu, double sigma)
     {

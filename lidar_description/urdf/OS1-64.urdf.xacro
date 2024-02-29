@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="OS1-64">
   <xacro:property name="M_PI" value="3.1415926535897931" />
-  <xacro:macro name="OS1-64" params="*origin parent:=base_link name:=os1_sensor topic:=/os1_cloud_node/points hz:=10 lasers:=64 samples:=512 collision_range:=0.7 min_range:=0.225 max_range:=100.0 noise:=0.008 min_angle:=-${M_PI} max_angle:=${M_PI} gpu:=false">
+  <xacro:macro name="OS1-64" params="*origin parent:=base_link name:=os1_sensor topic:=/os1_cloud_node/points hz:=10 lasers:=64 samples:=512 collision_range:=0.7 min_range:=0.225 max_range:=100.0 noise:=0.008 min_angle:=-${M_PI} max_angle:=${M_PI} gpu:=false organize_cloud:=true">
 
     <joint name="mount_joint" type="fixed">
       <xacro:insert_block name="origin" />
@@ -52,10 +52,6 @@
     <!-- Gazebo requires the ouster_gazebo_plugins package -->
     <gazebo reference="${name}">
 
-
-
-
-
       <xacro:if value="${gpu}">
         <sensor type="gpu_ray" name="${name}-OS1-64">
           <pose>0 0 0 0 0 0</pose>
@@ -72,8 +68,10 @@
               <vertical>
                 <samples>${lasers}</samples>
                 <resolution>1</resolution>
-                <min_angle>-${16.611*M_PI/180.0}</min_angle>
-                <max_angle>${16.611*M_PI/180.0}</max_angle>
+                <!-- <min_angle>-${16.611*M_PI/180.0}</min_angle>
+                <max_angle>${16.611*M_PI/180.0}</max_angle> -->
+                <min_angle>-${7.0*M_PI/180.0}</min_angle>
+                <max_angle>${45.0*M_PI/180.0}</max_angle>
               </vertical>
             </scan>
             <range>
@@ -87,6 +85,7 @@
             <frameName>${name}</frameName>
             <min_range>${min_range}</min_range>
             <max_range>${max_range}</max_range>
+            <organize_cloud>${organize_cloud}</organize_cloud>
             <gaussianNoise>${noise}</gaussianNoise>
           </plugin>
         </sensor>
@@ -123,6 +122,7 @@
             <frameName>${name}</frameName>
             <min_range>${min_range}</min_range>
             <max_range>${max_range}</max_range>
+            <organize_cloud>${organize_cloud}</organize_cloud>
             <gaussianNoise>${noise}</gaussianNoise>
           </plugin>
         </sensor>

@@ -123,6 +123,13 @@ void GazeboRosLidar::Load(sensors::SensorPtr _parent, sdf::ElementPtr _sdf)
     frame_name_ = _sdf->GetElement("frameName")->Get<std::string>();
   }
 
+  if (!_sdf->HasElement("organize_cloud")) {
+    ROS_INFO("Lidar laser plugin missing <organize_cloud>, defaults to false");
+    organize_cloud_ = false;
+  } else {
+    organize_cloud_ = _sdf->GetElement("organize_cloud")->Get<bool>();
+  }
+
   if (!_sdf->HasElement("min_range")) {
     ROS_INFO("Lidar plugin missing <min_range>, defaults to 0");
     min_range_ = 0;
@@ -288,14 +295,25 @@ void GazeboRosLidar::OnScan(ConstLaserScanStampedPtr& _msg)
 
   int i, j;
   uint8_t *ptr = msg.data.data();
-  for (i = 0; i < rangeCount; i++) {
-    for (j = 0; j < verticalRangeCount; j++) {
-
+  // for (i = 0; i < rangeCount; i++) {
+  //   for (j = 0; j < verticalRangeCount; j++) {
+  for (j = 0; j < verticalRangeCount; j++) {
+    for (i = 0; i < rangeCount; i++) {
       // Range
       double r = _msg->scan().ranges(i + j * rangeCount);
+      // double r = _msg->scan().ranges(j + i * verticalRangeCount);
       if ((MIN_RANGE >= r) || (r >= MAX_RANGE)) {
-        continue;
+        if(!organize_cloud_) {
+          continue;
+        }
       }
+
+      // if(r >= MAX_RANGE) {
+      //   r = MAX_RANGE;
+      // }
+      // if(r < 0.0) {
+      //   r = 0.0;
+      // }
 
       // Noise
       if (gaussian_noise_ != 0.0) {
@@ -304,6 +322,7 @@ void GazeboRosLidar::OnScan(ConstLaserScanStampedPtr& _msg)
 
       // Intensity
       double intensity = _msg->scan().intensities(i + j * rangeCount);
+      // double intensity = _msg->scan().intensities(j + i * verticalRangeCount);
 
       // Get angles of ray to get xyz for point
       double yAngle;
@@ -322,33 +341,70 @@ void GazeboRosLidar::OnScan(ConstLaserScanStampedPtr& _msg)
       }
 
       // pAngle is rotated by yAngle:
+//       if (true) {
+//       // if ((MIN_RANGE < r) && (r < MAX_RANGE)) {
+//         *((float*)(ptr + 0)) = r * cos(pAngle) * cos(yAngle);
+//         *((float*)(ptr + 4)) = r * cos(pAngle) * sin(yAngle);
+// #if GAZEBO_MAJOR_VERSION > 2
+//         *((float*)(ptr + 8)) = r * sin(pAngle);
+// #else
+//         *((float*)(ptr + 8)) = -r * sin(pAngle);
+// #endif
+//         *((float*)(ptr + 16)) = intensity;
+// #if GAZEBO_MAJOR_VERSION > 2
+//         *((uint16_t*)(ptr + 20)) = j; // ring
+// #else
+//         *((uint16_t*)(ptr + 20)) = verticalRangeCount - 1 - j; // ring
+// #endif
+//         ptr += POINT_STEP;
+//       }
       if ((MIN_RANGE < r) && (r < MAX_RANGE)) {
-        *((float*)(ptr + 0)) = r * cos(pAngle) * cos(yAngle);
-        *((float*)(ptr + 4)) = r * cos(pAngle) * sin(yAngle);
-#if GAZEBO_MAJOR_VERSION > 2
-        *((float*)(ptr + 8)) = r * sin(pAngle);
-#else
-        *((float*)(ptr + 8)) = -r * sin(pAngle);
-#endif
-        *((float*)(ptr + 16)) = intensity;
-#if GAZEBO_MAJOR_VERSION > 2
-        *((uint16_t*)(ptr + 20)) = j; // ring
-#else
-        *((uint16_t*)(ptr + 20)) = verticalRangeCount - 1 - j; // ring
-#endif
+        *((float*)(ptr + 0)) = r * cos(pAngle) * cos(yAngle); // x
+        *((float*)(ptr + 4)) = r * cos(pAngle) * sin(yAngle); // y
+        *((float*)(ptr + 8)) = r * sin(pAngle); // z
+        *((float*)(ptr + 12)) = intensity; // intensity
+        *((uint16_t*)(ptr + 16)) = j; // ring
+        *((float*)(ptr + 18)) = 0.0; // time
+        ptr += POINT_STEP;
+      } else if (organize_cloud_) {
+        *((float*)(ptr + 0)) = nanf(""); // x
+        *((float*)(ptr + 4)) = nanf(""); // y
+        *((float*)(ptr + 8)) = nanf(""); // x
+        *((float*)(ptr + 12)) = nanf(""); // intensity
+        *((uint16_t*)(ptr + 16)) = j; // ring
+        *((float*)(ptr + 18)) = 0.0; // time
         ptr += POINT_STEP;
       }
     }
   }
 
   // Populate message with number of valid points
+  // msg.point_step = POINT_STEP;
+  // msg.row_step = ptr - msg.data.data();
+  // // msg.height = 1;
+  // // msg.width = msg.row_step / POINT_STEP;
+  // msg.height = verticalRangeCount;
+  // msg.width = rangeCount;
+  // msg.is_bigendian = false;
+  // msg.is_dense = true;
+  // msg.data.resize(msg.row_step); // Shrink to actual size
+  msg.data.resize(ptr - msg.data.data()); // Shrink to actual size
   msg.point_step = POINT_STEP;
-  msg.row_step = ptr - msg.data.data();
-  msg.height = 1;
-  msg.width = msg.row_step / POINT_STEP;
   msg.is_bigendian = false;
-  msg.is_dense = true;
-  msg.data.resize(msg.row_step); // Shrink to actual size
+  if (organize_cloud_) {
+    // msg.width = verticalRangeCount;
+    // msg.height = msg.data.size() / POINT_STEP / msg.width;
+    // msg.row_step = POINT_STEP * msg.width;
+    msg.height = verticalRangeCount;
+    msg.width = msg.data.size() / POINT_STEP / msg.height;
+    msg.row_step = POINT_STEP * msg.width;
+    msg.is_dense = false;
+  } else {
+    msg.width = msg.data.size() / POINT_STEP;
+    msg.height = 1;
+    msg.row_step = msg.data.size();
+    msg.is_dense = true;
+  }
 
   // Publish output
   pub_.publish(msg);
